@@ -18,6 +18,7 @@ from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain.schema import Document
 import constants as ct
 
 
@@ -217,6 +218,15 @@ def file_load(path, docs_all):
         # ファイルの拡張子に合ったdata loaderを使ってデータ読み込み
         loader = ct.SUPPORTED_EXTENSIONS[file_extension](path)
         docs = loader.load()
+        if file_extension == ".csv":
+            # 各ドキュメントの中身をテキストとして連結
+            merged_text = "\n".join([doc.page_content for doc in docs])
+            # メタデータもまとめておく
+            merged_metadata = {
+                "source": path,
+            }
+            docs = [Document(metadata=merged_metadata, page_content=merged_text)]
+
         docs_all.extend(docs)
 
 
